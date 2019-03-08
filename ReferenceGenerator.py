@@ -5,13 +5,11 @@ import os
 from functools import partial
 import maya.mel as mel
 
+# This tool takes reference image files and applies it to a plane and creates imagePlanes. This tool is intended
+# to help modelers create quick reference images for modeling.
 
-# TODO: Get the reference image and get the size
-# TODO: Create plane to fit the size of the image
-# TODO: Apply the image to the plane
-# TODO: Optional stuff to come later
 
-# This will create plane and add a reference image to it
+# gets the width and height of the imageFile
 def imageSize(imagePath):
     image = om.MImage()
     image.readFromFile(imagePath)
@@ -86,6 +84,7 @@ def createFrontPlane(fPlane, *args):
     cmds.move((-(widthFront/15) * 2), 0, 0, r=True)
 
 
+# Applies the image texture to the planes
 def applyTextureToPlanes(imagePathTop, imagePathSide, imagePathFront):
     mel.eval('hyperShadePanelMenuCommand("hyperShadePanel", "deleteUnusedNodes");')
 
@@ -137,6 +136,17 @@ def applyTextureToPlanes(imagePathTop, imagePathSide, imagePathFront):
         cmds.select('frontView')
         cmds.hyperShade(assign=shading_group3)
 
+# Functions for Flipping UVs of plane
+def flipImageSide(obj):
+
+    if cmds.objExists(obj) is False:
+        return
+    cmds.select(obj)
+    uvs = cmds.polyListComponentConversion(tuv=True)
+    cmds.select(uvs)
+    cmds.polyFlipUV()
+    cmds.select(clear=True)
+
 
 #######################################################################################
 #
@@ -148,7 +158,7 @@ class ReferenceGeneratorUI(object):
 
     def __init__(self):
         self.name = "ReferenceGenerator"
-        self.size = (500, 500)
+        self.size = (500, 200)
 
         if cmds.window(self.name, exists=True):
             cmds.deleteUI(self.name, window=True)
@@ -168,9 +178,10 @@ class ReferenceGeneratorUI(object):
         self.mainForm = cmds.formLayout('mainForm')
         self.backFrame = cmds.scrollLayout('mainScroll', hst=16, vst=16, borderVisible=True)
 
-        self.rowBtn = cmds.rowLayout(numberOfColumns=2, parent=self.mainForm)
-        self.createButton = cmds.button(label='Create', width=250, command=self.createPlanes)
-        self.closeButton = cmds.button(label='Close', width=250,
+        self.rowBtn = cmds.rowLayout(numberOfColumns=3, parent=self.mainForm)
+        self.createButton = cmds.button(label='Create', width=166, command=self.createViewPlanes)
+        self.flip = cmds.button(label='Flip', width=166, command=self.flip)
+        self.closeButton = cmds.button(label='Close', width=166,
                                        command=('cmds.deleteUI(\"' + rWindow + '\", window=True)'))
 
         cmds.formLayout(self.mainForm, edit=True, attachForm=[(self.backFrame, 'left', 0),
@@ -227,7 +238,7 @@ class ReferenceGeneratorUI(object):
     # Shows what file is selected in the text boxes
     @staticmethod
     def scnFileOpenTop():
-        imageFilter = "Image Files (*.jpeg, *.png);; JPEG Image Files (*.jpg *.jpeg)"
+        imageFilter = "JPEG Image Files (*.jpg *.jpeg);; Other Image Files (*.png *.tif)"
         chosenFile = cmds.fileDialog2(fm=1, ds=0, cap="Open", ff=imageFilter, okc="Select image file", hfe=False)
         for fPath in chosenFile:
             imageName = fPath
@@ -236,7 +247,7 @@ class ReferenceGeneratorUI(object):
 
     @staticmethod
     def scnFileOpen2():
-        imageFilter = "Image Files (*.jpeg, *.png);; JPEG Image Files (*.jpg *.jpeg)"
+        imageFilter = "JPEG Image Files (*.jpg *.jpeg);;Other Image Files(*.png *.tif)"
         chosenFile = cmds.fileDialog2(fm=1, ds=0, cap="Open", ff=imageFilter, okc="Select image file", hfe=False)
         for fPath in chosenFile:
             imageName2 = fPath
@@ -245,7 +256,7 @@ class ReferenceGeneratorUI(object):
 
     @staticmethod
     def scnFileOpen3():
-        imageFilter = "Image Files (*.jpeg, *.png);; JPEG Image Files (*.jpg *.jpeg)"
+        imageFilter = "JPEG Image Files (*.jpg *.jpeg);;Other Image Files(*.png *.tif)"
         chosenFile = cmds.fileDialog2(fm=1, ds=0, cap="Open", ff=imageFilter, okc="Select image file", hfe=False)
         for fPath in chosenFile:
             imageName3 = fPath
@@ -256,11 +267,11 @@ class ReferenceGeneratorUI(object):
         self.currentState = cmds.rowLayout(widget, q=True, enable=False)
         cmds.rowLayout(widget, e=True, enable=(1 - self.currentState))
 
-    # Create function for the button
+    # Create function for the Create button
     def createViewPlanes(self, *args):
-        topView = None
-        sideView = None
-        frontView = None
+        topView = ''
+        sideView = ''
+        frontView = ''
 
         tBox = cmds.checkBox(self.tBtn, q=True, value=True)
         if tBox:
@@ -276,6 +287,10 @@ class ReferenceGeneratorUI(object):
 
         applyTextureToPlanes(topView, sideView, frontView)
 
+    # Flips the UVs of the selected Plane
+    def flip(self, *args):
+        selObj = cmds.ls(sl=True)[0]
+        flipImageSide(selObj)
 
 
 
