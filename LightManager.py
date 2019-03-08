@@ -1,15 +1,3 @@
-# TODO: create a light manager
-# TODO: get list of lights within the scene.
-# TODO: window will rename lights, adjust settings for lights
-# TODO: step 1: get light list in textscrollLayout - done
-# TODO: step 2: function for when light is selected
-# TODO: step 3: create unique functions depending on the light selected - done
-# TODO: step 4: make sure tools do what they are suppose to
-# TODO: step 5: add the specific tools to the menu
-# TODO: setup so the ui shows the actual setting of the light
-# TODO: functionality in the secondary Menu
-# TODO: functionality with vray lights
-
 # Basic Imports
 import maya.cmds as cmds
 import sys

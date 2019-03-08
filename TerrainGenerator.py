@@ -2,6 +2,9 @@ import maya.cmds as cmds
 import random as rand
 
 
+# This tool will create a terrain based off the black and white values of the vertexes of a mesh.
+# Users should have a mesh with vertex painted, however if none exists, the tool will randomly generate values
+# for the mesh.
 
 #######################################################################################
 #
